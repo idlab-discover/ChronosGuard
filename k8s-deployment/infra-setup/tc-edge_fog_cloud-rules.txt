@@ -1,0 +1,380 @@
+NOTES:
+
+deploy locust only at the edge
+
+tc -s qdisc ls dev eno1
+tc -s qdisc ls dev enp1s0f0
+tc -s filter ls dev enp1s0f0
+
+sudo tc -s qdisc
+
+sudo tc qdisc del dev enp18s0 root
+sudo tc qdisc del dev enp13s0 root
+sudo tc qdisc del dev eno1 root
+
+sudo tc filter del dev enp18s0 root
+sudo tc filter del dev enp13s0 root
+sudo tc filter del dev eno1 root
+
+sudo tc qdisc add dev enp1s0f0 root netem delay 20ms
+
+# edge-cloud infra:
+
+# create classes in all nodes! INTERFACE: eno1 and enp13s0 (10 nodes so 9 classes are enough)
+# eno1
+sudo tc qdisc add dev eno1 root handle 1: htb
+sudo tc class add dev eno1 parent 1: classid 1:2 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:3 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:4 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:5 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:6 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:7 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:8 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:9 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:11 htb rate 1000mbit
+
+# enp13s0
+sudo tc qdisc add dev enp13s0 root handle 1: htb
+sudo tc class add dev enp13s0 parent 1: classid 1:2 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:3 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:4 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:5 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:6 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:7 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:8 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:9 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:11 htb rate 1000mbit
+
+# enp18s0
+sudo tc qdisc add dev enp18s0 root handle 1: htb
+sudo tc class add dev enp18s0 parent 1: classid 1:2 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:3 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:4 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:5 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:6 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:7 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:8 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:9 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:10 htb rate 1000mbit
+
+# create different delays per node and attribute a specific IP:
+
+# n1 (master)
+sudo tc qdisc add dev eno1 root handle 1: htb
+sudo tc class add dev eno1 parent 1: classid 1:2 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:3 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:4 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:5 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:6 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:7 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:8 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:9 htb rate 1000mbit
+
+sudo tc qdisc add dev eno1 parent 1:2 handle 12: netem delay 5ms
+sudo tc qdisc add dev eno1 parent 1:3 handle 13: netem delay 5ms
+sudo tc qdisc add dev eno1 parent 1:4 handle 14: netem delay 5ms
+sudo tc qdisc add dev eno1 parent 1:5 handle 15: netem delay 5ms
+sudo tc qdisc add dev eno1 parent 1:6 handle 16: netem delay 7.5ms
+sudo tc qdisc add dev eno1 parent 1:7 handle 17: netem delay 7.5ms
+sudo tc qdisc add dev eno1 parent 1:8 handle 18: netem delay 7.5ms
+sudo tc qdisc add dev eno1 parent 1:9 handle 19: netem delay 7.5ms
+
+sudo tc filter add dev eno1 parent 1: protocol ip prio 2 u32 match ip dst 10.2.33.24 flowid 1:2
+sudo tc filter add dev eno1 parent 1: protocol ip prio 3 u32 match ip dst 10.2.35.48 flowid 1:3
+sudo tc filter add dev eno1 parent 1: protocol ip prio 4 u32 match ip dst 10.2.35.15 flowid 1:4
+sudo tc filter add dev eno1 parent 1: protocol ip prio 5 u32 match ip dst 10.2.33.7 flowid 1:5
+sudo tc filter add dev eno1 parent 1: protocol ip prio 6 u32 match ip dst 10.2.35.32 flowid 1:6
+sudo tc filter add dev eno1 parent 1: protocol ip prio 7 u32 match ip dst 10.2.35.28 flowid 1:7
+sudo tc filter add dev eno1 parent 1: protocol ip prio 8 u32 match ip dst 10.2.35.33 flowid 1:8
+sudo tc filter add dev eno1 parent 1: protocol ip prio 9 u32 match ip dst 10.2.35.16 flowid 1:9
+
+
+# n2
+sudo tc qdisc add dev eno1 root handle 1: htb
+sudo tc class add dev eno1 parent 1: classid 1:2 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:3 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:4 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:5 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:6 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:7 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:8 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:9 htb rate 1000mbit
+
+sudo tc qdisc add dev eno1 parent 1:2 handle 12: netem delay 5ms
+sudo tc qdisc add dev eno1 parent 1:3 handle 13: netem delay 5ms
+sudo tc qdisc add dev eno1 parent 1:4 handle 14: netem delay 5ms
+sudo tc qdisc add dev eno1 parent 1:5 handle 15: netem delay 5ms
+sudo tc qdisc add dev eno1 parent 1:6 handle 16: netem delay 7.5ms
+sudo tc qdisc add dev eno1 parent 1:7 handle 17: netem delay 7.5ms
+sudo tc qdisc add dev eno1 parent 1:8 handle 18: netem delay 7.5ms
+sudo tc qdisc add dev eno1 parent 1:9 handle 19: netem delay 7.5ms
+
+sudo tc filter add dev eno1 parent 1: protocol ip prio 2 u32 match ip dst 10.2.33.24 flowid 1:2
+sudo tc filter add dev eno1 parent 1: protocol ip prio 3 u32 match ip dst 10.2.35.48 flowid 1:3
+sudo tc filter add dev eno1 parent 1: protocol ip prio 4 u32 match ip dst 10.2.35.15 flowid 1:4
+sudo tc filter add dev eno1 parent 1: protocol ip prio 5 u32 match ip dst 10.2.33.7 flowid 1:5
+sudo tc filter add dev eno1 parent 1: protocol ip prio 6 u32 match ip dst 10.2.35.32 flowid 1:6
+sudo tc filter add dev eno1 parent 1: protocol ip prio 7 u32 match ip dst 10.2.35.28 flowid 1:7
+sudo tc filter add dev eno1 parent 1: protocol ip prio 8 u32 match ip dst 10.2.35.33 flowid 1:8
+sudo tc filter add dev eno1 parent 1: protocol ip prio 9 u32 match ip dst 10.2.35.16 flowid 1:9
+
+
+# n3
+
+sudo tc qdisc add dev eno1 root handle 1: htb
+sudo tc class add dev eno1 parent 1: classid 1:1 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:2 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:3 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:4 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:5 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:6 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:7 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:8 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:9 htb rate 1000mbit
+
+sudo tc qdisc add dev eno1 parent 1:1 handle 12: netem delay 5ms
+sudo tc qdisc add dev eno1 parent 1:2 handle 13: netem delay 5ms
+sudo tc qdisc add dev eno1 parent 1:3 handle 14: netem delay 1.5ms
+sudo tc qdisc add dev eno1 parent 1:4 handle 15: netem delay 1.5ms
+sudo tc qdisc add dev eno1 parent 1:5 handle 16: netem delay 1.5ms
+sudo tc qdisc add dev eno1 parent 1:6 handle 17: netem delay 2.5ms
+sudo tc qdisc add dev eno1 parent 1:7 handle 18: netem delay 4ms
+sudo tc qdisc add dev eno1 parent 1:8 handle 19: netem delay 4ms
+sudo tc qdisc add dev eno1 parent 1:9 handle 20: netem delay 4ms
+
+sudo tc filter add dev eno1 parent 1: protocol ip prio 1 u32 match ip dst 10.2.33.13 flowid 1:1
+sudo tc filter add dev eno1 parent 1: protocol ip prio 2 u32 match ip dst 10.2.33.40 flowid 1:2
+sudo tc filter add dev eno1 parent 1: protocol ip prio 3 u32 match ip dst 10.2.35.48 flowid 1:3
+sudo tc filter add dev eno1 parent 1: protocol ip prio 4 u32 match ip dst 10.2.35.15 flowid 1:4
+sudo tc filter add dev eno1 parent 1: protocol ip prio 5 u32 match ip dst 10.2.33.7 flowid 1:5
+sudo tc filter add dev eno1 parent 1: protocol ip prio 6 u32 match ip dst 10.2.35.32 flowid 1:6
+sudo tc filter add dev eno1 parent 1: protocol ip prio 7 u32 match ip dst 10.2.35.28 flowid 1:7
+sudo tc filter add dev eno1 parent 1: protocol ip prio 8 u32 match ip dst 10.2.35.33 flowid 1:8
+sudo tc filter add dev eno1 parent 1: protocol ip prio 9 u32 match ip dst 10.2.35.16 flowid 1:9
+
+# n4
+
+sudo tc qdisc add dev enp13s0 root handle 1: htb
+sudo tc class add dev enp13s0 parent 1: classid 1:1 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:2 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:3 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:4 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:5 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:6 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:7 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:8 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:9 htb rate 1000mbit
+
+sudo tc qdisc add dev enp13s0 parent 1:1 handle 12: netem delay 5ms
+sudo tc qdisc add dev enp13s0 parent 1:2 handle 13: netem delay 5ms
+sudo tc qdisc add dev enp13s0 parent 1:3 handle 14: netem delay 1.5ms
+sudo tc qdisc add dev enp13s0 parent 1:4 handle 15: netem delay 1.5ms
+sudo tc qdisc add dev enp13s0 parent 1:5 handle 16: netem delay 1.5ms
+sudo tc qdisc add dev enp13s0 parent 1:6 handle 17: netem delay 4ms
+sudo tc qdisc add dev enp13s0 parent 1:7 handle 18: netem delay 2.5ms
+sudo tc qdisc add dev enp13s0 parent 1:8 handle 19: netem delay 4ms
+sudo tc qdisc add dev enp13s0 parent 1:9 handle 20: netem delay 4ms
+
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 1 u32 match ip dst 10.2.33.13 flowid 1:1
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 2 u32 match ip dst 10.2.33.40 flowid 1:2
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 3 u32 match ip dst 10.2.33.24 flowid 1:3
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 4 u32 match ip dst 10.2.35.15 flowid 1:4
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 5 u32 match ip dst 10.2.33.7 flowid 1:5
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 6 u32 match ip dst 10.2.35.32 flowid 1:6
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 7 u32 match ip dst 10.2.35.28 flowid 1:7
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 8 u32 match ip dst 10.2.35.33 flowid 1:8
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 9 u32 match ip dst 10.2.35.16 flowid 1:9
+
+# n5
+sudo tc qdisc add dev enp13s0 root handle 1: htb
+sudo tc class add dev enp13s0 parent 1: classid 1:1 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:2 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:3 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:4 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:5 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:6 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:7 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:8 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:9 htb rate 1000mbit
+
+sudo tc qdisc add dev enp13s0 parent 1:1 handle 12: netem delay 5ms
+sudo tc qdisc add dev enp13s0 parent 1:2 handle 13: netem delay 5ms
+sudo tc qdisc add dev enp13s0 parent 1:3 handle 14: netem delay 1.5ms
+sudo tc qdisc add dev enp13s0 parent 1:4 handle 15: netem delay 1.5ms
+sudo tc qdisc add dev enp13s0 parent 1:5 handle 16: netem delay 1.5ms
+sudo tc qdisc add dev enp13s0 parent 1:6 handle 17: netem delay 4ms
+sudo tc qdisc add dev enp13s0 parent 1:7 handle 18: netem delay 4ms
+sudo tc qdisc add dev enp13s0 parent 1:8 handle 19: netem delay 2.5ms
+sudo tc qdisc add dev enp13s0 parent 1:9 handle 20: netem delay 4ms
+
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 1 u32 match ip dst 10.2.33.13 flowid 1:1
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 2 u32 match ip dst 10.2.33.40 flowid 1:2
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 3 u32 match ip dst 10.2.33.24 flowid 1:3
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 4 u32 match ip dst 10.2.35.48 flowid 1:4
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 5 u32 match ip dst 10.2.33.7 flowid 1:5
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 6 u32 match ip dst 10.2.35.32 flowid 1:6
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 7 u32 match ip dst 10.2.35.28 flowid 1:7
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 8 u32 match ip dst 10.2.35.33 flowid 1:8
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 9 u32 match ip dst 10.2.35.16 flowid 1:9
+
+
+# n6
+sudo tc qdisc add dev eno1 root handle 1: htb
+sudo tc class add dev eno1 parent 1: classid 1:1 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:2 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:3 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:4 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:5 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:6 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:7 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:8 htb rate 1000mbit
+sudo tc class add dev eno1 parent 1: classid 1:9 htb rate 1000mbit
+
+sudo tc qdisc add dev eno1 parent 1:1 handle 12: netem delay 5ms
+sudo tc qdisc add dev eno1 parent 1:2 handle 13: netem delay 5ms
+sudo tc qdisc add dev eno1 parent 1:3 handle 14: netem delay 1.5ms
+sudo tc qdisc add dev eno1 parent 1:4 handle 15: netem delay 1.5ms
+sudo tc qdisc add dev eno1 parent 1:5 handle 16: netem delay 1.5ms
+sudo tc qdisc add dev eno1 parent 1:6 handle 17: netem delay 4ms
+sudo tc qdisc add dev eno1 parent 1:7 handle 18: netem delay 4ms
+sudo tc qdisc add dev eno1 parent 1:8 handle 19: netem delay 4ms
+sudo tc qdisc add dev eno1 parent 1:9 handle 20: netem delay 2.5ms
+
+sudo tc filter add dev eno1 parent 1: protocol ip prio 1 u32 match ip dst 10.2.33.13 flowid 1:1
+sudo tc filter add dev eno1 parent 1: protocol ip prio 2 u32 match ip dst 10.2.33.40 flowid 1:2
+sudo tc filter add dev eno1 parent 1: protocol ip prio 3 u32 match ip dst 10.2.33.24 flowid 1:3
+sudo tc filter add dev eno1 parent 1: protocol ip prio 4 u32 match ip dst 10.2.35.48 flowid 1:4
+sudo tc filter add dev eno1 parent 1: protocol ip prio 5 u32 match ip dst 10.2.35.15 flowid 1:5
+sudo tc filter add dev eno1 parent 1: protocol ip prio 6 u32 match ip dst 10.2.35.32 flowid 1:6
+sudo tc filter add dev eno1 parent 1: protocol ip prio 7 u32 match ip dst 10.2.35.28 flowid 1:7
+sudo tc filter add dev eno1 parent 1: protocol ip prio 8 u32 match ip dst 10.2.35.33 flowid 1:8
+sudo tc filter add dev eno1 parent 1: protocol ip prio 9 u32 match ip dst 10.2.35.16 flowid 1:9
+
+
+# n7
+sudo tc qdisc add dev enp13s0 root handle 1: htb
+sudo tc class add dev enp13s0 parent 1: classid 1:1 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:2 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:3 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:4 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:5 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:6 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:7 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:8 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:9 htb rate 1000mbit
+
+sudo tc qdisc add dev enp13s0 parent 1:1 handle 12: netem delay 7.5ms
+sudo tc qdisc add dev enp13s0 parent 1:2 handle 13: netem delay 7.5ms
+sudo tc qdisc add dev enp13s0 parent 1:3 handle 14: netem delay 2.5ms
+sudo tc qdisc add dev enp13s0 parent 1:4 handle 15: netem delay 4ms
+sudo tc qdisc add dev enp13s0 parent 1:5 handle 16: netem delay 4ms
+sudo tc qdisc add dev enp13s0 parent 1:6 handle 17: netem delay 4ms
+sudo tc qdisc add dev enp13s0 parent 1:7 handle 18: netem delay 6.5ms
+sudo tc qdisc add dev enp13s0 parent 1:8 handle 19: netem delay 6.5ms
+sudo tc qdisc add dev enp13s0 parent 1:9 handle 20: netem delay 6.5ms
+
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 1 u32 match ip dst 10.2.33.13 flowid 1:1
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 2 u32 match ip dst 10.2.33.40 flowid 1:2
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 3 u32 match ip dst 10.2.33.24 flowid 1:3
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 4 u32 match ip dst 10.2.35.48 flowid 1:4
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 5 u32 match ip dst 10.2.35.15 flowid 1:5
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 6 u32 match ip dst 10.2.33.7 flowid 1:6
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 7 u32 match ip dst 10.2.35.28 flowid 1:7
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 8 u32 match ip dst 10.2.35.33 flowid 1:8
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 9 u32 match ip dst 10.2.35.16 flowid 1:9
+
+# n8
+sudo tc qdisc add dev enp18s0 root handle 1: htb
+sudo tc class add dev enp18s0 parent 1: classid 1:1 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:2 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:3 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:4 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:5 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:6 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:7 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:8 htb rate 1000mbit
+sudo tc class add dev enp18s0 parent 1: classid 1:9 htb rate 1000mbit
+
+sudo tc qdisc add dev enp18s0 parent 1:1 handle 12: netem delay 7.5ms
+sudo tc qdisc add dev enp18s0 parent 1:2 handle 13: netem delay 7.5ms
+sudo tc qdisc add dev enp18s0 parent 1:3 handle 14: netem delay 4ms
+sudo tc qdisc add dev enp18s0 parent 1:4 handle 15: netem delay 2.5ms
+sudo tc qdisc add dev enp18s0 parent 1:5 handle 16: netem delay 4ms
+sudo tc qdisc add dev enp18s0 parent 1:6 handle 17: netem delay 4ms
+sudo tc qdisc add dev enp18s0 parent 1:7 handle 18: netem delay 6.5ms
+sudo tc qdisc add dev enp18s0 parent 1:8 handle 19: netem delay 6.5ms
+sudo tc qdisc add dev enp18s0 parent 1:9 handle 20: netem delay 6.5ms
+
+sudo tc filter add dev enp18s0 parent 1: protocol ip prio 1 u32 match ip dst 10.2.33.13 flowid 1:1
+sudo tc filter add dev enp18s0 parent 1: protocol ip prio 2 u32 match ip dst 10.2.33.40 flowid 1:2
+sudo tc filter add dev enp18s0 parent 1: protocol ip prio 3 u32 match ip dst 10.2.33.24 flowid 1:3
+sudo tc filter add dev enp18s0 parent 1: protocol ip prio 4 u32 match ip dst 10.2.35.48 flowid 1:4
+sudo tc filter add dev enp18s0 parent 1: protocol ip prio 5 u32 match ip dst 10.2.35.15 flowid 1:5
+sudo tc filter add dev enp18s0 parent 1: protocol ip prio 6 u32 match ip dst 10.2.33.7 flowid 1:6
+sudo tc filter add dev enp18s0 parent 1: protocol ip prio 7 u32 match ip dst 10.2.35.32 flowid 1:7
+sudo tc filter add dev enp18s0 parent 1: protocol ip prio 8 u32 match ip dst 10.2.35.33 flowid 1:8
+sudo tc filter add dev enp18s0 parent 1: protocol ip prio 9 u32 match ip dst 10.2.35.16 flowid 1:9
+
+# n9
+sudo tc qdisc add dev enp13s0 root handle 1: htb
+sudo tc class add dev enp13s0 parent 1: classid 1:1 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:2 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:3 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:4 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:5 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:6 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:7 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:8 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:9 htb rate 1000mbit
+
+sudo tc qdisc add dev enp13s0 parent 1:1 handle 12: netem delay 7.5ms
+sudo tc qdisc add dev enp13s0 parent 1:2 handle 13: netem delay 7.5ms
+sudo tc qdisc add dev enp13s0 parent 1:3 handle 14: netem delay 4ms
+sudo tc qdisc add dev enp13s0 parent 1:4 handle 15: netem delay 4ms
+sudo tc qdisc add dev enp13s0 parent 1:5 handle 16: netem delay 2.5ms
+sudo tc qdisc add dev enp13s0 parent 1:6 handle 17: netem delay 4ms
+sudo tc qdisc add dev enp13s0 parent 1:7 handle 18: netem delay 6.5ms
+sudo tc qdisc add dev enp13s0 parent 1:8 handle 19: netem delay 6.5ms
+sudo tc qdisc add dev enp13s0 parent 1:9 handle 20: netem delay 6.5ms
+
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 1 u32 match ip dst 10.2.33.13 flowid 1:1
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 2 u32 match ip dst 10.2.33.40 flowid 1:2
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 3 u32 match ip dst 10.2.33.24 flowid 1:3
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 4 u32 match ip dst 10.2.35.48 flowid 1:4
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 5 u32 match ip dst 10.2.35.15 flowid 1:5
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 6 u32 match ip dst 10.2.33.7 flowid 1:6
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 7 u32 match ip dst 10.2.35.32 flowid 1:7
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 8 u32 match ip dst 10.2.35.28 flowid 1:8
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 9 u32 match ip dst 10.2.35.16 flowid 1:9
+
+# n10
+sudo tc qdisc add dev enp13s0 root handle 1: htb
+sudo tc class add dev enp13s0 parent 1: classid 1:1 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:2 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:3 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:4 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:5 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:6 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:7 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:8 htb rate 1000mbit
+sudo tc class add dev enp13s0 parent 1: classid 1:9 htb rate 1000mbit
+
+sudo tc qdisc add dev enp13s0 parent 1:1 handle 12: netem delay 7.5ms
+sudo tc qdisc add dev enp13s0 parent 1:2 handle 13: netem delay 7.5ms
+sudo tc qdisc add dev enp13s0 parent 1:3 handle 14: netem delay 4ms
+sudo tc qdisc add dev enp13s0 parent 1:4 handle 15: netem delay 4ms
+sudo tc qdisc add dev enp13s0 parent 1:5 handle 16: netem delay 4ms
+sudo tc qdisc add dev enp13s0 parent 1:6 handle 17: netem delay 2.5ms
+sudo tc qdisc add dev enp13s0 parent 1:7 handle 18: netem delay 6.5ms
+sudo tc qdisc add dev enp13s0 parent 1:8 handle 19: netem delay 6.5ms
+sudo tc qdisc add dev enp13s0 parent 1:9 handle 20: netem delay 6.5ms
+
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 1 u32 match ip dst 10.2.33.13 flowid 1:1
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 2 u32 match ip dst 10.2.33.40 flowid 1:2
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 3 u32 match ip dst 10.2.33.24 flowid 1:3
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 4 u32 match ip dst 10.2.35.48 flowid 1:4
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 5 u32 match ip dst 10.2.35.15 flowid 1:5
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 6 u32 match ip dst 10.2.33.7 flowid 1:6
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 7 u32 match ip dst 10.2.35.32 flowid 1:7
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 8 u32 match ip dst 10.2.35.28 flowid 1:8
+sudo tc filter add dev enp13s0 parent 1: protocol ip prio 9 u32 match ip dst 10.2.35.33 flowid 1:9

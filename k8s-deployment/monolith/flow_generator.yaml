@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flowgenerator
+spec:
+  selector:
+    matchLabels:
+      app: flowgenerator
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: flowgenerator
+    spec:
+      # nodeSelector: # add to run always on master node!
+      #   node-role.kubernetes.io/master: "" #kubernetes.io/hostname: node2.cluster.ilabt-imec-be.wall1.ilabt.iminds.be #dedicated: master
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 5
+      restartPolicy: Always
+      initContainers:
+      - command:
+        - /bin/sh
+        - -exc
+        - |
+          echo "Init container pinging preprocessing_api service: ${MONOLITH_ADDR}..."
+          STATUSCODE=$(wget --server-response http://${MONOLITH_ADDR} 2>&1 | awk '/^  HTTP/{print $2}')
+          if test $STATUSCODE -ne 200; then
+              echo "Error: Could not reach preprocessing_api - Status code: ${STATUSCODE}"
+              exit 1
+          fi
+        name: preprocess-check
+        image: busybox:latest
+        env:
+        - name: MONOLITH_ADDR
+          value: "http://allinoneapi:8004"
+      containers:
+      - name: main
+        image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/flow_generator_slim:latest
+        imagePullPolicy: IfNotPresent # To avoid pulling the image if already present
+        ports:
+          - containerPort: 8089
+          - containerPort: 5557
+        env: # env variables
+        - name: BENIGN_WEIGHT
+          value: "4"
+        - name: ATTACKER_WEIGHT
+          value: "1"
+        - name: USER_THROUGHPUT
+          value: "1"
+        - name: ATTACKER_UNKNOWN_RATIO
+          value: "2"
+        - name: LOCUST_HOST
+          value: "http://allinoneapi:8004"
+        - name: MODEL_HTTPX_TIMEOUT
+          value: "60"
+        - name: LOCUST_CSV
+          value: "monolith"
+        - name: LOCUST_CSV_FULL_HISTORY
+          value: "True"
+        - name: PROMETHEUS_URL
+          value: "http://prom-kube-prometheus-stack-prometheus:9090"
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+---

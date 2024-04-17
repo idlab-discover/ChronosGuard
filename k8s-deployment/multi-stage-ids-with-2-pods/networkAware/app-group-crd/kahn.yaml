@@ -1,0 +1,30 @@
+apiVersion: scheduling.sigs.k8s.io/v1alpha1
+kind: AppGroup
+metadata:
+  name: ids2
+spec:
+  numMembers: 2
+  topologySortingAlgorithm: KahnSort # Other algorithms are available
+  workloads:
+    - workload:
+        kind: Deployment
+        name: preprocessingallbinary
+        selector: preprocessingallbinary
+        apiVersion: apps/v1
+        namespace: default
+      dependencies: # Dependency to multiclass_zeroday api
+        - workload:
+            kind: Deployment
+            name: multiclasszeroday
+            selector: multiclasszeroday
+            apiVersion: apps/v1
+            namespace: default
+          minBandwidth: "512Mi"
+          maxNetworkCost: 400 # 400 us or 40 ms
+    - workload:
+        kind: Deployment
+        name: multiclasszeroday
+        selector: multiclasszeroday
+        apiVersion: apps/v1
+        namespace: default
+

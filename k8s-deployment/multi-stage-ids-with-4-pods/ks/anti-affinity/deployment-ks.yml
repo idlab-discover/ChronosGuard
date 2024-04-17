@@ -1,0 +1,245 @@
+# preprocessing_api
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: preprocessingapi
+spec:
+  replicas: 1 # Initial number of deployed replicas
+  selector:
+    matchLabels:
+      app: preprocessingapi
+  template:
+    metadata:
+      labels:
+        app: preprocessingapi
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - preprocessingapi
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: preprocessingapi
+        image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/preprocessing_api:latest
+        imagePullPolicy: IfNotPresent # To avoid pulling the image if already present
+        ports:
+        - containerPort: 8000
+        env: # define env variables
+        - name: MODEL_BINARY_HOST
+          value: "http://binaryapi:8001"
+        - name: UVICORN_HOST
+          value: "0.0.0.0"
+        - name: UVICORN_PORT
+          value: "8000"
+        - name: UVICORN_LOG_LEVEL
+          value: "info"
+        resources:
+          requests:
+            cpu: 450m
+            memory: 192Mi
+          limits:
+            cpu: 900m
+            memory: 384Mi
+--- # preprocessing_api service
+apiVersion: v1
+kind: Service
+metadata:
+  name: preprocessingapi
+spec:
+  type: ClusterIP
+  selector:
+    app: preprocessingapi
+  ports:
+  - name: grpc
+    port: 8000
+    targetPort: 8000
+--- # binary_api
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: binaryapi
+spec:
+  replicas: 1 # Initial number of deployed replicas
+  selector:
+    matchLabels:
+      app: binaryapi
+  template:
+    metadata:
+      labels:
+        app: binaryapi
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - binaryapi
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: binaryapi
+        image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/binary_api:latest
+        imagePullPolicy: IfNotPresent # To avoid pulling the image if already present
+        ports:
+        - containerPort: 8001
+        env: # define env variables
+        - name: MODEL_MULTI_CLASS_HOST
+          value: "http://multiclassapi:8002"
+        - name: MODEL_TAU_B
+          value: "-0.0002196942507948895"
+        - name: UVICORN_HOST
+          value: "0.0.0.0"
+        - name: UVICORN_PORT
+          value: "8001"
+        - name: UVICORN_LOG_LEVEL
+          value: "info"
+        resources:
+          requests:
+            cpu: 250m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+--- # binary_api service
+apiVersion: v1
+kind: Service
+metadata:
+  name: binaryapi
+spec:
+  type: ClusterIP
+  selector:
+    app: binaryapi
+  ports:
+  - name: grpc
+    port: 8001
+    targetPort: 8001
+--- # multiclassapi
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multiclassapi
+spec:
+  replicas: 1 # Initial number of deployed replicas
+  selector:
+    matchLabels:
+      app: multiclassapi
+  template:
+    metadata:
+      labels:
+        app: multiclassapi
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - multiclassapi
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: multiclassapi
+        image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/multi_class_api:latest
+        imagePullPolicy: IfNotPresent # To avoid pulling the image if already present
+        ports:
+        - containerPort: 8002
+        env: # define env variables
+        - name: MODEL_ZERO_DAY_HOST
+          value: "http://zerodayapi:8003"
+        - name: MODEL_TAU_M
+          value: "0.98"
+        - name: UVICORN_HOST
+          value: "0.0.0.0"
+        - name: UVICORN_PORT
+          value: "8002"
+        - name: UVICORN_LOG_LEVEL
+          value: "info"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 128Mi
+          limits:
+            cpu: 400m
+            memory: 256Mi
+--- # multiclassapi service
+apiVersion: v1
+kind: Service
+metadata:
+  name: multiclassapi
+spec:
+  type: ClusterIP
+  selector:
+    app: multiclassapi
+  ports:
+  - name: grpc
+    port: 8002
+    targetPort: 8002
+--- # zerodayapi
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zerodayapi
+spec:
+  replicas: 1 # Initial number of deployed replicas
+  selector:
+    matchLabels:
+      app: zerodayapi
+  template:
+    metadata:
+      labels:
+        app: zerodayapi
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - zerodayapi
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: zerodayapi
+        image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/zero_day_api:latest
+        imagePullPolicy: IfNotPresent # To avoid pulling the image if already present
+        ports:
+        - containerPort: 8003
+        env: # define env variables
+        - name: MODEL_TAU_U
+          value: "0.0040588613744241275"
+        - name: UVICORN_HOST
+          value: "0.0.0.0"
+        - name: UVICORN_PORT
+          value: "8003"
+        - name: UVICORN_LOG_LEVEL
+          value: "info"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+--- # zerodayapi service
+apiVersion: v1
+kind: Service
+metadata:
+  name: zerodayapi
+spec:
+  type: ClusterIP
+  selector:
+    app: zerodayapi
+  ports:
+  - name: grpc
+    port: 8003
+    targetPort: 8003
+---

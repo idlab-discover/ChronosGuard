@@ -1,0 +1,56 @@
+# Example Network CRD
+apiVersion: scheduling.sigs.k8s.io/v1alpha1
+kind: NetworkTopology
+metadata:
+  name: net-topology-test
+  namespace: default
+spec:
+  configmapName: "netperf-metrics"
+  weights:
+    # Region label: "topology.kubernetes.io/region"
+    # Zone Label:   "topology.kubernetes.io/zone"
+    # 1 Regions:  belgium
+    # 16 Zones:
+    - name: "UserDefined"
+      topologyList: # Define weights between regions or between zones
+        - topologyKey: "topology.kubernetes.io/region" # region costs
+          originList:
+            - origin: "belgium"
+              costList:
+        - topologyKey: "topology.kubernetes.io/zone" # zone costs
+          originList:
+            - origin: "master"
+              costList:
+            - origin: "z1"
+              costList:
+            - origin: "z2"
+              costList:
+            - origin: "z3"
+              costList:
+            - origin: "z4"
+              costList:
+            - origin: "z5"
+              costList:
+            - origin: "z6"
+              costList:
+            - origin: "z7"
+              costList:
+            - origin: "z8"
+              costList:
+            - origin: "z9"
+              costList:
+            - origin: "z10"
+              costList:
+            - origin: "z11"
+              costList:
+            - origin: "z12"
+              costList:
+            - origin: "z13"
+              costList:
+            - origin: "z14"
+              costList:
+            - origin: "z15"
+              costList:
+
+
+

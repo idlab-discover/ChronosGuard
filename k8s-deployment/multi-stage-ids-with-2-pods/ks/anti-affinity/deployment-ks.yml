@@ -1,0 +1,128 @@
+# preprocessing_binary_api
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: preprocessingallbinary
+spec:
+  replicas: 1 # Initial number of deployed replicas
+  selector:
+    matchLabels:
+      app: preprocessingallbinary
+  template:
+    metadata:
+      labels:
+        app: preprocessingallbinary
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - preprocessingallbinary
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: preprocessingallbinary
+        image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/preprocessing_all_binary_slim:latest
+        imagePullPolicy: IfNotPresent # To avoid pulling the image if already present
+        ports:
+        - containerPort: 8001
+        env: # define env variables
+        - name: MODEL_TAU_B
+          value: "-0.0002196942507948895"
+        - name: MODEL_MULTI_CLASS_HOST
+          value: "http://multiclasszerodayapi:8002"
+        - name:  MODEL_HTTPX_TIMEOUT
+          value: "60"
+        - name: UVICORN_HOST
+          value: "0.0.0.0"
+        - name: UVICORN_PORT
+          value: "8001"
+        - name: UVICORN_LOG_LEVEL
+          value: "info"
+        resources:
+          requests:
+            cpu: 700m
+            memory: 384Mi
+          limits:
+            cpu: 1400m
+            memory: 768Mi
+--- # preprocessing_all_binary_api service
+apiVersion: v1
+kind: Service
+metadata:
+  name: preprocessingallbinary
+spec:
+  type: ClusterIP
+  selector:
+    app: preprocessingallbinary
+  ports:
+  - name: grpc
+    port: 8001
+    targetPort: 8001
+--- # multi_class_zero_day_api
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multiclasszerodayapi
+spec:
+  replicas: 1 # Initial number of deployed replicas
+  selector:
+    matchLabels:
+      app: multiclasszerodayapi
+  template:
+    metadata:
+      labels:
+        app: multiclasszerodayapi
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - multiclasszerodayapi
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: multiclasszerodayapi
+        image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/multi-class_zero-day_slim:latest
+        imagePullPolicy: IfNotPresent # To avoid pulling the image if already present
+        ports:
+        - containerPort: 8002
+        env: # define env variables
+        - name: MODEL_TAU_M
+          value: "0.98"
+        - name: MODEL_TAU_U
+          value: "0.0040588613744241275"
+        - name: MODEL_HTTPX_TIMEOUT
+          value: "60"
+        - name: UVICORN_HOST
+          value: "0.0.0.0"
+        - name: UVICORN_PORT
+          value: "8002"
+        - name: UVICORN_LOG_LEVEL
+          value: "info"
+        resources:
+          requests:
+            cpu: 300m
+            memory: 128Mi
+          limits:
+            cpu: 600m
+            memory: 256Mi
+--- # preprocessing_multi_class_api service
+apiVersion: v1
+kind: Service
+metadata:
+  name: multiclasszerodayapi
+spec:
+  type: ClusterIP
+  selector:
+    app: multiclasszerodayapi
+  ports:
+  - name: grpc
+    port: 8002
+    targetPort: 8002

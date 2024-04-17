@@ -1,0 +1,33 @@
+# Example for labels:
+
+# Region label: "topology.kubernetes.io/region"
+# Zone Label:   "topology.kubernetes.io/zone"
+
+# 1 Regions:  cloud
+# 16 Zones:   master, z1, .., z10
+
+# regions:
+
+kubectl label nodes n1.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/region=cloud --overwrite
+kubectl label nodes n2.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/region=cloud --overwrite
+kubectl label nodes n3.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/region=cloud --overwrite
+kubectl label nodes n4.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/region=cloud --overwrite
+kubectl label nodes n5.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/region=cloud --overwrite
+kubectl label nodes n6.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/region=cloud --overwrite
+kubectl label nodes n7.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/region=cloud --overwrite
+kubectl label nodes n8.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/region=cloud --overwrite
+kubectl label nodes n9.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/region=cloud --overwrite
+kubectl label nodes n10.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/region=cloud --overwrite
+
+# zones:
+
+kubectl label nodes n1.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/zone=master --overwrite
+kubectl label nodes n2.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/zone=z2 --overwrite
+kubectl label nodes n3.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/zone=z3 --overwrite
+kubectl label nodes n4.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/zone=z4 --overwrite
+kubectl label nodes n5.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/zone=z5 --overwrite
+kubectl label nodes n6.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/zone=z6 --overwrite
+kubectl label nodes n7.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/zone=z7 --overwrite
+kubectl label nodes n8.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/zone=z8 --overwrite
+kubectl label nodes n9.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/zone=z9 --overwrite
+kubectl label nodes n10.ids.ilabt-imec-be.wall2.ilabt.iminds.be topology.kubernetes.io/zone=z10 --overwrite

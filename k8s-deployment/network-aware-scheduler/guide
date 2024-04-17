@@ -1,0 +1,37 @@
+Guide to test network-aware plugins:
+
+1) Build kube-scheduler and controller image from KepDevWithNTController branch. Otherwise, both images are available under jpedro1992.
+
+Example: jpedro1992/kube-scheduler:kubecon same tag for controller.
+
+2) Install both CRDs. Go to crd-manifests/.
+
+	Install appgroup: kubectl apply -f appgroup/crd.yaml
+
+	Install networkTopology: kubectl apply -f networktopology/crd.yaml
+
+	Deploy examples to see that everything works: kubectl apply -f appgroup/example.yaml / kubectl apply -f appgroup/networktopology.yaml (The same CR is used for online boutique deployment)
+
+3) Label nodes based on the current topology. An example is available at network-topology-crd/example.yaml based on the networktopology example.
+
+4) Deploy controller:
+
+	kubectl apply -f controller/all-in-one.yaml
+
+	Check logs to see that everything worked:
+
+	                        kubectl logs scheduler-plugins-controller-566c9c679f-xzvzd -n scheduler-plugins
+							W0221 09:57:33.693841       1 client_config.go:615] Neither --kubeconfig nor --master was specified.  Using the inClusterConfig.  This might not work.
+							I0221 09:57:33.695620       1 appgroup.go:106] "Starting App Group controller"
+							I0221 09:57:33.695656       1 elasticquota.go:115] "Starting Elastic Quota control loop"
+							I0221 09:57:33.696677       1 elasticquota.go:117] "Waiting for informer caches to sync"
+							I0221 09:57:33.696015       1 podgroup.go:96] "Starting Pod Group controller"
+							I0221 09:57:34.096810       1 elasticquota.go:122] "Elastic Quota sync finished"
+							I0221 09:57:34.096888       1 podgroup.go:103] "Pod Group sync finished"
+							I0221 09:57:34.096908       1 appgroup.go:113] "App Group sync finished"
+
+5) Deploy network-aware-scheduler:
+
+	Install it via the deploy-sched-plugins.yaml file. The sched-cc.yaml must be in the master node in the corresponding folder: /etc/kubernetes/
+
+	Image could be changed to: image: jpedro1992/kube-scheduler:v1.1 OR image: jpedro1992/kube-scheduler:kubecon

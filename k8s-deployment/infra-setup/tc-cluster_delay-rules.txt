@@ -1,0 +1,48 @@
+NOTES:
+
+tc -s qdisc ls dev enp1s0f0
+tc -s filter ls dev enp1s0f0
+
+sudo tc -s qdisc
+sudo tc qdisc del dev enp1s0f0 root
+sudo tc qdisc add dev enp1s0f0 root netem delay 20ms
+
+# n1 (master)
+
+no rule!
+
+# n2
+sudo tc qdisc del dev eno1 root
+sudo tc qdisc add dev eno1 root netem delay 1ms
+
+# n3
+sudo tc qdisc del dev eno1 root
+sudo tc qdisc add dev eno1 root netem delay 1.5ms
+
+# n4
+sudo tc qdisc del dev enp13s0 root
+sudo tc qdisc add dev enp13s0 root netem delay 2ms
+
+# n5
+sudo tc qdisc del dev enp13s0 root
+sudo tc qdisc add dev enp13s0 root netem delay 2.5ms
+
+# n6
+sudo tc qdisc del dev eno1 root
+sudo tc qdisc add dev eno1 root netem delay 3ms
+
+# n7
+sudo tc qdisc del dev enp13s0 root
+sudo tc qdisc add dev enp13s0 root netem delay 2.5ms
+
+# n8
+sudo tc qdisc del dev enp18s0 root
+sudo tc qdisc add dev enp18s0 root netem delay 2ms
+
+# n9
+sudo tc qdisc del dev enp13s0 root
+sudo tc qdisc add dev enp13s0 root netem delay 1.5ms
+
+# n10
+sudo tc qdisc del dev enp13s0 root
+sudo tc qdisc add dev enp13s0 root netem delay 1ms

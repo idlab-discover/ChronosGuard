@@ -1,0 +1,24 @@
+apiVersion: kubescheduler.config.k8s.io/v1beta1
+kind: KubeSchedulerConfiguration
+leaderElection:
+  leaderElect: false
+clientConnection:
+  kubeconfig: /etc/kubernetes/scheduler.conf
+profiles:
+- schedulerName: diktyo-priority-scheduler # scheduler name
+  plugins:
+    filter:
+      enabled:
+      - name: NetworkOverhead
+    score:
+      enabled: # A higher weight is given to NetworkMinCost to favor allocation schemes with lower latency.
+      - name: NetworkOverhead
+        weight: 5
+  pluginConfig:
+  - name: NetworkOverhead
+    args:
+      kubeConfigPath: "/etc/kubernetes/scheduler.conf"
+      namespaces:
+      - "default"
+      weightsName: "NetperfCosts"
+      networkTopologyName: "net-topology-test"

@@ -1,0 +1,52 @@
+apiVersion: scheduling.sigs.k8s.io/v1alpha1
+kind: AppGroup
+metadata:
+  name: ids2
+spec:
+  numMembers: 3
+  topologySortingAlgorithm: AlternateKahn # Other algorithms are available
+  workloads:
+    - workload: # No dependencies for flow_generator
+        kind: Deployment
+        name: flowgenerator
+        selector: flowgenerator
+        apiVersion: apps/v1
+        namespace: default
+    - workload:
+        kind: Deployment
+        name: preprocessingallbinary
+        selector: preprocessingallbinary
+        apiVersion: apps/v1
+        namespace: default
+      dependencies: # Dependency to flowgenerator and multiclasszeroday api
+        - workload:
+            kind: Deployment
+            name: flowgenerator
+            selector: flowgenerator
+            apiVersion: apps/v1
+            namespace: default
+          minBandwidth: "512Mi"
+          maxNetworkCost: 400 # 400 us or 40 ms
+        - workload:
+            kind: Deployment
+            name: multiclasszeroday
+            selector: multiclasszeroday
+            apiVersion: apps/v1
+            namespace: default
+          minBandwidth: "512Mi"
+          maxNetworkCost: 400 # 400 us or 40 ms
+    - workload:
+        kind: Deployment
+        name: multiclasszeroday
+        selector: multiclasszeroday
+        apiVersion: apps/v1
+        namespace: default
+      dependencies: # Dependency to preprocessing_binary
+        - workload:
+            kind: Deployment
+            name: preprocessingallbinary
+            selector: preprocessingallbinary
+            apiVersion: apps/v1
+            namespace: default
+          minBandwidth: "100Mi"
+          maxNetworkCost: 800 # 800 us or 80 ms

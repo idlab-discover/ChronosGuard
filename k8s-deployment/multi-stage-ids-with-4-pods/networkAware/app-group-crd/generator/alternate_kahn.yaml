@@ -1,0 +1,75 @@
+apiVersion: scheduling.sigs.k8s.io/v1alpha1
+kind: AppGroup
+metadata:
+  name: ids4
+spec:
+  numMembers: 5
+  topologySortingAlgorithm: AlternateKahn # Other algorithms are available
+  workloads:
+    - workload: # No dependencies for flow_generator
+        kind: Deployment
+        name: flowgenerator
+        selector: flowgenerator
+        apiVersion: apps/v1
+        namespace: default
+    - workload:
+        kind: Deployment
+        name: preprocessingapi
+        selector: preprocessingapi
+        apiVersion: apps/v1
+        namespace: default
+      dependencies: # Dependency to flowgenerator and binary detection
+        - workload:
+            kind: Deployment
+            name: flowgenerator
+            selector: flowgenerator
+            apiVersion: apps/v1
+            namespace: default
+          minBandwidth: "512Mi"
+          maxNetworkCost: 400 # 400 us or 40 ms
+        - workload:
+            kind: Deployment
+            name: binaryapi
+            selector: binaryapi
+            apiVersion: apps/v1
+            namespace: default
+          minBandwidth: "512Mi"
+          maxNetworkCost: 400 # 400 us or 40 ms
+    - workload:
+        kind: Deployment
+        name: binaryapi
+        selector: binaryapi
+        apiVersion: apps/v1
+        namespace: default
+      dependencies: # Dependency to multi-class-classifier
+        - workload:
+            kind: Deployment
+            name: multiclassapi
+            selector: multiclassapi
+            apiVersion: apps/v1
+            namespace: default
+          minBandwidth: "256Mi"
+          maxNetworkCost: 600 # 600 us or 60 ms
+    - workload:
+        kind: Deployment
+        name: multiclassapi
+        selector: multiclassapi
+        apiVersion: apps/v1
+        namespace: default
+      dependencies: # Dependency to zero-day-detection-k8s-deployment
+        - workload:
+            kind: Deployment
+            name: zerodayapi
+            selector: zerodayapi
+            apiVersion: apps/v1
+            namespace: default
+          minBandwidth: "100Mi"
+          maxNetworkCost: 800 # 800 us or 80 ms
+    - workload:
+        kind: Deployment
+        name: zerodayapi
+        selector: zerodayapi
+        apiVersion: apps/v1
+        namespace: default
+---
+

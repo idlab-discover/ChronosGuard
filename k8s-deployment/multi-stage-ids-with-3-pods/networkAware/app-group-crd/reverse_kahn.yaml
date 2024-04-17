@@ -1,0 +1,46 @@
+apiVersion: scheduling.sigs.k8s.io/v1alpha1
+kind: AppGroup
+metadata:
+  name: ids3
+spec:
+  numMembers: 3
+  topologySortingAlgorithm: ReverseKahn # Other algorithms are available
+  workloads:
+    - workload:
+        kind: Deployment
+        name: preprocessingbinaryapi
+        selector: preprocessingbinaryapi
+        apiVersion: apps/v1
+        namespace: default
+      dependencies: # Dependency to preprocessing multiclass api
+        - workload:
+            kind: Deployment
+            name: preprocessingmulticlassapi
+            selector: preprocessingmulticlassapi
+            apiVersion: apps/v1
+            namespace: default
+          minBandwidth: "512Mi"
+          maxNetworkCost: 400 # 400 us or 40 ms
+    - workload:
+        kind: Deployment
+        name: preprocessingmulticlassapi
+        selector: preprocessingmulticlassapi
+        apiVersion: apps/v1
+        namespace: default
+      dependencies: # Dependency to zeroday
+        - workload:
+            kind: Deployment
+            name: zerodayapi
+            selector: zerodayapi
+            apiVersion: apps/v1
+            namespace: default
+          minBandwidth: "100Mi"
+          maxNetworkCost: 800 # 800 us or 80 ms
+    - workload:
+        kind: Deployment
+        name: zerodayapi
+        selector: zerodayapi
+        apiVersion: apps/v1
+        namespace: default
+---
+

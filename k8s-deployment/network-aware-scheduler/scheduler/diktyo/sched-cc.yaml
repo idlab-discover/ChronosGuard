@@ -1,0 +1,34 @@
+apiVersion: kubescheduler.config.k8s.io/v1beta1
+kind: KubeSchedulerConfiguration
+leaderElection:
+  leaderElect: false
+clientConnection:
+  kubeconfig: /etc/kubernetes/scheduler.conf
+profiles:
+- schedulerName: network-aware-scheduler # scheduler name
+  plugins:
+    queueSort:
+      enabled:
+      - name: TopologicalSort
+      disabled:
+      - name: "*"
+    filter:
+      enabled:
+      - name: NetworkOverhead
+    score:
+      enabled: # A higher weight is given to NetworkMinCost to favor allocation schemes with lower latency.
+      - name: NetworkOverhead
+        weight: 5
+  pluginConfig:
+  - name: TopologicalSort
+    args:
+      kubeConfigPath: "/etc/kubernetes/scheduler.conf"
+      namespaces:
+      - "default"
+  - name: NetworkOverhead
+    args:
+      kubeConfigPath: "/etc/kubernetes/scheduler.conf"
+      namespaces:
+      - "default"
+      weightsName: "NetperfCosts"
+      networkTopologyName: "net-topology-test"

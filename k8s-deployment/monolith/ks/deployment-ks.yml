@@ -1,0 +1,57 @@
+# all in one api
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: allinoneapi
+spec:
+  replicas: 1 # Initial number of deployed replicas
+  selector:
+    matchLabels:
+      app: allinoneapi
+  template:
+    metadata:
+      labels:
+        app: allinoneapi
+    spec:
+      tolerations:
+      nodeSelector:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: allinoneapi
+        image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/all_in_one_api
+        imagePullPolicy: IfNotPresent # To avoid pulling the image if already present
+        ports:
+        - containerPort: 8004
+        env: # define env variables
+        - name: MODEL_TAU_B
+          value: "-0.0002196942507948895"
+        - name: MODEL_TAU_M
+          value: "0.98"
+        - name: MODEL_TAU_U
+          value: "0.0040588613744241275"
+        - name: UVICORN_HOST
+          value: "0.0.0.0"
+        - name: UVICORN_PORT
+          value: "8004"
+        - name: UVICORN_LOG_LEVEL
+          value: "info"
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 1024Mi
+--- # all in one api service
+apiVersion: v1
+kind: Service
+metadata:
+  name: allinoneapi
+spec:
+  type: ClusterIP
+  selector:
+    app: allinoneapi
+  ports:
+  - name: grpc
+    port: 8004
+    targetPort: 8004

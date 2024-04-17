@@ -1,0 +1,10 @@
+# Might need to be installed for perl dependencies:
+
+sudo cpan JSON
+sudo cpan JSON::Parse
+sudo cpan Text::CSV
+sudo apt install libdbd-mysql-perl -y
+
+# delete configmap if needed:
+
+kubectl delete configmap netperf-metrics

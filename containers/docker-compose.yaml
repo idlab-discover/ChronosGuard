@@ -1,0 +1,145 @@
+version: "3.9"
+services:
+  flow_generator:
+    image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/flow_generator_slim
+    build: ./0_generator
+    ports:
+      - "8089:8089"
+      - "5557:5557"
+    environment:
+      - BENIGN_WEIGHT=4
+      - ATTACKER_WEIGHT=1
+      - USER_THROUGHPUT=-1
+      - ATTACKER_UNKNOWN_RATIO=2
+      - LOCUST_HOST=http://preprocessing_api:8000
+      - MODEL_HTTPX_TIMEOUT=60
+    depends_on:
+      - preprocessing_api
+      - binary_api
+      - multi_class_api
+      - zero_day_api
+  
+  preprocessing_api:
+    image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/preprocessing_api
+    build: ./1_preprocessing
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_BINARY_HOST=http://binary_api:8001
+      - UVICORN_HOST=0.0.0.0
+      - UVICORN_PORT=8000
+      - UVICORN_LOG_LEVEL=info
+    healthcheck:
+      test: "curl -f localhost:$$UVICORN_PORT"
+      interval: 20s
+      timeout: 20s
+      retries: 6
+      start_period: 20s
+
+  binary_api:
+    image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/binary_api
+    build: ./2_binary
+    ports:
+      - "8001:8001"
+    environment:
+      - MODEL_MULTI_CLASS_HOST=http://multi_class_api:8002
+      - MODEL_TAU_B=-0.0002196942507948895
+      - UVICORN_HOST=0.0.0.0
+      - UVICORN_PORT=8001
+      - UVICORN_LOG_LEVEL=info
+    healthcheck:
+      test: "curl -f localhost:$$UVICORN_PORT"
+      interval: 20s
+      timeout: 20s
+      retries: 6
+      start_period: 20s
+
+  multi_class_api:
+    image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/multi_class_api
+    build: ./3_multi-class
+    ports:
+      - "8002:8002"
+    environment:
+      - MODEL_ZERO_DAY_HOST=http://zero_day_api:8003
+      - MODEL_TAU_M=0.98
+      - UVICORN_HOST=0.0.0.0
+      - UVICORN_PORT=8002
+      - UVICORN_LOG_LEVEL=info
+    healthcheck:
+      test: "curl -f localhost:$$UVICORN_PORT"
+      interval: 20s
+      timeout: 20s
+      retries: 6
+      start_period: 20s
+
+  zero_day_api:
+    image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/zero_day_api
+    build: ./4_zero-day
+    ports:
+      - "8003:8003"
+    environment:
+      - MODEL_TAU_U=0.0040588613744241275
+      - UVICORN_HOST=0.0.0.0
+      - UVICORN_PORT=8003
+      - UVICORN_LOG_LEVEL=info
+    healthcheck:
+      test: "curl -f localhost:$$UVICORN_PORT"
+      interval: 20s
+      timeout: 20s
+      retries: 6
+      start_period: 20s
+
+  all_in_one_api:
+    image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/all_in_one_api
+    build: ./all_in_one
+    ports:
+      - "8004:8004"
+    environment:
+      - MODEL_TAU_B=-0.0002196942507948895
+      - MODEL_TAU_M=0.98
+      - MODEL_TAU_U=0.0040588613744241275
+      - UVICORN_HOST=0.0.0.0
+      - UVICORN_PORT=8004
+      - UVICORN_LOG_LEVEL=info
+    healthcheck:
+      test: "curl -f localhost:$$UVICORN_PORT"
+      interval: 20s
+      timeout: 20s
+      retries: 6
+      start_period: 20s
+
+  preprocessing_binary_api:
+    image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/preprocessing_binary_api
+    build: ./2a_preprocess_binary
+    ports:
+      - "8005:8005"
+    environment:
+      - MODEL_MULTI_CLASS_HOST=http://preprocessing_multi_class_api:8006
+      - MODEL_TAU_B=-0.0002196942507948895
+      - UVICORN_HOST=0.0.0.0
+      - UVICORN_PORT=8005
+      - UVICORN_LOG_LEVEL=info
+    healthcheck:
+      test: "curl -f localhost:$$UVICORN_PORT"
+      interval: 20s
+      timeout: 20s
+      retries: 6
+      start_period: 20s
+
+  preprocessing_multi_class_api:
+    image: gitlab.ilabt.imec.be:4567/josperei/multi-stage-ids-for-kubernetes/preprocessing_multi_class_api
+    build: ./3a_preprocess_multi-class
+    ports:
+      - "8006:8006"
+    environment:
+      - MODEL_ZERO_DAY_HOST=http://zero_day_api:8003
+      - MODEL_TAU_M=0.98
+      - UVICORN_HOST=0.0.0.0
+      - UVICORN_PORT=8006
+      - UVICORN_LOG_LEVEL=info
+    healthcheck:
+      test: "curl -f localhost:$$UVICORN_PORT"
+      interval: 20s
+      timeout: 20s
+      retries: 6
+      start_period: 20s

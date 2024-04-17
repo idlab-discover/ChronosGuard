@@ -1,0 +1,37 @@
+# Guide for configuring master in K8s cluster
+
+# If reset needed:
+sudo kubeadm reset
+sudo rm -rf /var/lib/cni/
+
+# Otherwise, install with calico on master node:
+sudo kubeadm init --pod-network-cidr=192.168.0.0/16
+
+# As a regular user
+sudo cp /etc/kubernetes/admin.conf $HOME/
+sudo chown $(id -u):$(id -g) $HOME/admin.conf
+export KUBECONFIG=$HOME/admin.conf
+
+# Record token for cluster nodes
+# example:
+#
+#  kubeadm join 10.2.35.65:6443 --token 5u923a.fmbvjkqsdfsfdwfwfg2t \
+#        --discovery-token-ca-cert-hash sha256:e797a3dca08cdefd7e530b0sfdssed1sfd84ff428818902c025831fa7d54e0714445
+#
+
+# Install the operator on your cluster.
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/tigera-operator.yaml
+
+curl https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/custom-resources.yaml -O
+kubectl create -f custom-resources.yaml
+
+# check if pods are running
+kubectl get pods --all-namespaces
+
+# untaint master node to run pods in master
+kubectl taint nodes --all node-role.kubernetes.io/master-
+
+# Install prometheus stack
+helm install prom prometheus-community/kube-prometheus-stack
+
+
