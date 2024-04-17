@@ -22,7 +22,7 @@ This repository only contains the aggregated results, in the analysis directory,
 
 ## Contact
 
-If you have any questions or comments regarding the paper, code, or results, feel free to contact the corresponding author at Miel.Verkerken@UGent.be. We welcome any feedback or suggestions for future work in this area. 
+If you have any questions or comments regarding the paper, code, or results, feel free to contact the corresponding author at X.X@X.X. We welcome any feedback or suggestions for future work in this area. 
 
 ## License
 
